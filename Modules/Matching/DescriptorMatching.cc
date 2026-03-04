@@ -42,12 +42,21 @@ int searchForInitializaion(Frame& refFrame, Frame& currFrame, int th, vector<int
     vector<size_t> vIndicesToCheck(100);
 
     vector<cv::KeyPoint>& vRefKeys = refFrame.getKeyPoints();
+    vector<cv::KeyPoint>& vCurrKeys = currFrame.getKeyPoints();
 
     vector<int> vMatchedDistance(vRefKeys.size(),INT_MAX);
     vector<int> vnMatches21(vRefKeys.size(),-1);
 
     cv::Mat refDesc = refFrame.getDescriptors();
     cv::Mat currDesc = currFrame.getDescriptors();
+
+    int windowSizeFactor;
+
+    if (refFrame.getIm().rows < refFrame.getIm().cols) {
+        windowSizeFactor = refFrame.getIm().rows / 4;
+    } else {
+        windowSizeFactor = refFrame.getIm().cols / 4;
+    }
 
     int nMatches = 0;
     const int minOctave = 0, maxOctave = 0;
@@ -57,9 +66,43 @@ int searchForInitializaion(Frame& refFrame, Frame& currFrame, int th, vector<int
             continue;
         }
 
-        /*
-         * Your code for Lab 3 - Task 1 here!
-         */
+        ///////////////////// OUR CODE /////////////////////
+
+        //Clear previous matches
+        vIndicesToCheck.clear();
+
+        //Get last octave in which the point was seen
+        int nLastOctave = refFrame.getKeyPoint(i).octave;
+
+        //Search radius depends on the size of the point in the image
+        float radius = 15 * windowSizeFactor * currFrame.getScaleFactor(nLastOctave);
+        
+        //Get candidates whose coordinates are close to the current point
+        currFrame.getFeaturesInArea(vCurrKeys[i].pt.x,vCurrKeys[i].pt.y, radius, nLastOctave-1, nLastOctave+1, vIndicesToCheck);
+
+        //Match with the one with the smallest Hamming distance
+        int bestDist = 255, secondBestDist = 255;
+        size_t bestIdx;
+        for(auto j : vIndicesToCheck){
+
+            int dist = HammingDistance(refDesc.row(i), currDesc.row(j));
+
+            if(dist < bestDist){
+                secondBestDist = bestDist;
+                bestDist = dist;
+                bestIdx = j;
+            }
+            else if(dist < secondBestDist){
+                secondBestDist = dist;
+            }
+        }
+        if(bestDist <= th && (float)bestDist < (float(secondBestDist)*0.9)){ // 0.9 puede ser parametrizable
+            vMatches[i] = bestIdx;
+            nMatches++;
+        } else {
+            vMatches[i] = -1;
+        }
+        ///////////////////// OUR CODE /////////////////////
     }
 
     for(size_t i = 0; i < vMatches.size(); i++){

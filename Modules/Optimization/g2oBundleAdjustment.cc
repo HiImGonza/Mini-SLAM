@@ -48,7 +48,7 @@ void bundleAdjustment(Map* pMap){
     );
 
     optimizer.setAlgorithm(solver);
-    optimizer.setVerbose(true);
+    optimizer.setVerbose(false);
 
     const float thHuber2D = sqrt(5.99);
 
