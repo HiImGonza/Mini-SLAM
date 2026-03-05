@@ -78,6 +78,14 @@ public:
          * Your code for Lab 3 - Task 3 here! Example:
          * _error = Eigen::Vector2d::Ones()*100;
          */
+
+        Eigen::Vector3d p3Dc = Tcw.map(p3Dw);
+        Eigen::Vector2f p2Dc_f;
+
+        pCamera->project(p3Dc.cast<float>(), p2Dc_f);
+
+        _error = obs - p2Dc_f.cast<double>();
+
     }
 
     bool isDepthPositive() {
@@ -110,6 +118,12 @@ public:
         * Your code for Lab 3 - Task 3 here! Example:
         * _error = Eigen::Vector2d::Ones()*100;
         */
+        Eigen::Vector3d p3Dc = Tcw.map(Xworld);
+        Eigen::Vector2f p2Dc_f;
+
+        pCamera->project(p3Dc.cast<float>(), p2Dc_f);
+
+        _error = obs - p2Dc_f.cast<double>();
     }
 
     bool isDepthPositive() {

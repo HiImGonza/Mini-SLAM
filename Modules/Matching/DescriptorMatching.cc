@@ -183,6 +183,10 @@ int searchWithProjection(Frame& currFrame, int th, std::vector<std::shared_ptr<M
 
     vector<size_t> vIndicesToCheck(100);
 
+    ///////////////////////////////// OUR CODE /////////////////////////////////
+    cv::Mat currDesc = currFrame.getDescriptors();
+    ///////////////////////////////// OUR CODE /////////////////////////////////
+
     int nMatches = 0, vCos = 0, invDist = 0, noClose = 0;
     for(shared_ptr<MapPoint> pMP : vMapPoints){
         //Clear previous matches
@@ -228,6 +232,33 @@ int searchWithProjection(Frame& currFrame, int th, std::vector<std::shared_ptr<M
         /*
          * Your matching code for Lab 3 - Task 4 goes here
          */
+        // currFrame.getFeaturesInArea(uv.x,uv.y, radius, predictedOctave-1, predictedOctave+1, vIndicesToCheck);
+
+        // cv::Mat mpDescriptor = pMP->getDescriptor();
+
+        // int bestDist = 255, secondBestDist = 255;
+        // size_t bestIdx;
+        // for(auto j : vIndicesToCheck){
+
+        //     if(currFrame.getMapPoint(j))
+        //         continue;
+
+        //     int dist = HammingDistance(mpDescriptor, currDesc.row(j));
+
+        //     if(dist < bestDist){
+        //         secondBestDist = bestDist;
+        //         bestDist = dist;
+        //         bestIdx = j;
+        //     }
+        //     else if(dist < secondBestDist){
+        //         secondBestDist = dist;
+        //     }
+        // }
+        // if(bestDist <= th && (float)bestDist < (float(secondBestDist)*0.9)){ // 0.9 puede ser parametrizable
+        //     currFrame.setMapPoint(bestIdx, pMP);
+        //     nMatches++;
+        // }
+
     }
 
     return nMatches;

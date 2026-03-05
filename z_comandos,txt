@@ -1,0 +1,8 @@
+./build/Apps/mono_tumrgbd Datasets/rgbd_dataset_freiburg1_xyz/
+
+python3 Evaluation/evaluate_ate_scale.py Datasets/rgbd_dataset_freiburg1_xyz/groundtruth.txt trajectory.txt
+
+Task 3:
+1.1110632647319758,0.004258298938141505
+Task 4:
+0.6532411316449862,0.001349603357026628
