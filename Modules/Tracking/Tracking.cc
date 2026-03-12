@@ -207,6 +207,8 @@ bool Tracking::monocularMapInitialization() {
         return false;
     }
 
+
+
     //Get map scale
     vector<float> vDepths;
     for(int i = 0; i < vTriangulated.size(); i++){
@@ -239,6 +241,8 @@ bool Tracking::monocularMapInitialization() {
     }
 
     cout << "Map initialized with " << nTriangulated << " MapPoints" << endl;
+    int basura;
+    cin >> basura;
 
     shared_ptr<KeyFrame> kf0(new KeyFrame(prevFrame_));
     shared_ptr<KeyFrame> kf1(new KeyFrame(currFrame_));

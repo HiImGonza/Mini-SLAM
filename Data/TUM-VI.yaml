@@ -17,7 +17,7 @@ Camera.cols: 512
 Camera.rows: 512
 
 # Number of features per image
-FeatureExtractor.nFeatures: 1000
+FeatureExtractor.nFeatures: 2000
 
 # Number of levels in the scale pyramid
 FeatureExtractor.nScales: 8
@@ -33,7 +33,7 @@ FeatureGrid.nGridRows: 48
 Epipolar.th: 0.004
 
 #Feature matching thresholds
-Matching.initialization: 50
+Matching.initialization: 40
 Matching.guidedMatching: 50
 Matching.searchByProjection: 100
 Matching.searchForTriangulation: 50

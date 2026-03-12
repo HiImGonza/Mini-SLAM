@@ -96,7 +96,7 @@ int searchForInitializaion(Frame& refFrame, Frame& currFrame, int th, vector<int
                 secondBestDist = dist;
             }
         }
-        if(bestDist <= th && (float)bestDist < (float(secondBestDist)*0.9)){ // 0.9 puede ser parametrizable
+        if(bestDist <= th && (float)bestDist < (float(secondBestDist)*0.8)){ // 0.9 puede ser parametrizable
             vMatches[i] = bestIdx;
             nMatches++;
         } else {
@@ -232,32 +232,32 @@ int searchWithProjection(Frame& currFrame, int th, std::vector<std::shared_ptr<M
         /*
          * Your matching code for Lab 3 - Task 4 goes here
          */
-        // currFrame.getFeaturesInArea(uv.x,uv.y, radius, predictedOctave-1, predictedOctave+1, vIndicesToCheck);
+        currFrame.getFeaturesInArea(uv.x,uv.y, radius, predictedOctave-1, predictedOctave+1, vIndicesToCheck);
 
-        // cv::Mat mpDescriptor = pMP->getDescriptor();
+        cv::Mat mpDescriptor = pMP->getDescriptor();
 
-        // int bestDist = 255, secondBestDist = 255;
-        // size_t bestIdx;
-        // for(auto j : vIndicesToCheck){
+        int bestDist = 255, secondBestDist = 255;
+        size_t bestIdx;
+        for(auto j : vIndicesToCheck){
 
-        //     if(currFrame.getMapPoint(j))
-        //         continue;
+            if(currFrame.getMapPoint(j))
+                continue;
 
-        //     int dist = HammingDistance(mpDescriptor, currDesc.row(j));
+            int dist = HammingDistance(mpDescriptor, currDesc.row(j));
 
-        //     if(dist < bestDist){
-        //         secondBestDist = bestDist;
-        //         bestDist = dist;
-        //         bestIdx = j;
-        //     }
-        //     else if(dist < secondBestDist){
-        //         secondBestDist = dist;
-        //     }
-        // }
-        // if(bestDist <= th && (float)bestDist < (float(secondBestDist)*0.9)){ // 0.9 puede ser parametrizable
-        //     currFrame.setMapPoint(bestIdx, pMP);
-        //     nMatches++;
-        // }
+            if(dist < bestDist){
+                secondBestDist = bestDist;
+                bestDist = dist;
+                bestIdx = j;
+            }
+            else if(dist < secondBestDist){
+                secondBestDist = dist;
+            }
+        }
+        if(bestDist <= th && (float)bestDist < (float(secondBestDist)*0.9)){ // 0.9 puede ser parametrizable
+            currFrame.setMapPoint(bestIdx, pMP);
+            nMatches++;
+        }
 
     }
 

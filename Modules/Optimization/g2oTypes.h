@@ -71,7 +71,7 @@ public:
         const g2o::VertexSE3Expmap* v1 = static_cast<const g2o::VertexSE3Expmap*>(_vertices[1]);
         const VertexSBAPointXYZ* v2 = static_cast<const VertexSBAPointXYZ*>(_vertices[0]);
         Eigen::Vector2d obs(_measurement);      //Observed point in the image
-        Eigen::Vector3d p3Dw = v2->estimate();  //Predicted 3D world position  of the point
+        Eigen::Vector3d p3Dw = v2->estimate();  //Predicted 3D world position of the point
         g2o::SE3Quat Tcw = v1->estimate();      //Preficted camera pose
 
         /*

@@ -1,0 +1,54 @@
+./build/Apps/mono_tumrgbd Datasets/rgbd_dataset_freiburg1_xyz/
+
+python3 Evaluation/evaluate_ate_scale.py Datasets/rgbd_dataset_freiburg1_xyz/groundtruth.txt trajectory.txt
+
+python3 Evaluation/evaluate_ate_scale.py Datasets/rgbd_dataset_freiburg1_xyz/groundtruth.txt trajectory.txt --save align.txt --save_associations assiciated.txt --plot plot.png --verbose 
+
+Task 3:
+Average RMSE ATE: 0.003494 m
+Average Trajectory Length (Pairs): 5.80 frames
+Scale Stability (Std Dev): 0.1795
+Average Relative Scale Error (|1 - Scale|): 0.1134
+RMSE Coefficient of Variation: 39.99%
+
+caughty soft 
+
+
+
+
+
+Task 3 2000:
+Map initialized with 102 MapPoints
+Map initialized with 136 MapPoints
+Map initialized with 194 MapPoints
+Map initialized with 164 MapPoints
+Map initialized with 184 MapPoints
+Map initialized with 154 MapPoints
+Map initialized with 128 MapPoints
+Map initialized with 147 MapPoints
+Map initialized with 194 MapPoints
+Map initialized with 183 MapPoints
+Task 4:
+--- SLAM Analysis Report (Task 3) ---
+1.2502075083593818,8,0.007752643526842847,0.0072382710619619175,0.00693639494906937,0.0027768531988319077,0.00319107123386807,0.011263953548021906
+Average RMSE ATE: 0.003854 m
+Average Trajectory Length (Pairs): 6.65 frames
+Scale Stability (Std Dev): 0.3426
+Average Relative Scale Error (|1 - Scale|): 0.2711
+RMSE Coefficient of Variation: 35.91%
+Graph saved successfully as 'combined_performance_metrics.png'
+
+Task 4 2000:
+Map initialized with 139 MapPoints
+Map initialized with 182 MapPoints
+Map initialized with 180 MapPoints
+Map initialized with 193 MapPoints
+Map initialized with 176 MapPoints
+Map initialized with 239 MapPoints
+Map initialized with 166 MapPoints
+Map initialized with 142 MapPoints
+Map initialized with 163 MapPoints
+Map initialized with 212 MapPoints
+
+
+
