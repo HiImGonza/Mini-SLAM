@@ -35,19 +35,35 @@ Settings::Settings(const std::string& configFile) {
     }
 
     //Read camera calibration
+    
     float fx = fSettings["Camera.fx"];
     float fy = fSettings["Camera.fy"];
     float cx = fSettings["Camera.cx"];
     float cy = fSettings["Camera.cy"];
-    vector<float> vCalibration = {fx,fy,cx,cy};
-
-    calibration_ = shared_ptr<CameraModel>(new PinHole(vCalibration));
-
+    
     /*
-     * Your code for Lab 3 - Task 5 here!
-     */
-    // TIP: std::string sModel = fSettings["Camera.type"];
+    * Your code for Lab 3 - Task 5 here!
+    */
+   // TIP: std::string sModel = fSettings["Camera.type"];
+   
+   std::string sModel = fSettings["Camera.type"];
+   if (sModel == "PinHole") {
+        vector<float> vCalibration = {fx,fy,cx,cy};
 
+        calibration_ = shared_ptr<CameraModel>(new PinHole(vCalibration));
+        cout << "Camera: Pinhole" << endl;
+
+    } else if (sModel == "KannalaBrandt8") {
+        float k0 = fSettings["Camera.k1"];
+        float k1 = fSettings["Camera.k2"];
+        float k2 = fSettings["Camera.p1"]; // El YAML lo llama p1
+        float k3 = fSettings["Camera.p2"]; // El YAML lo llama p2
+        
+        vector<float> vCalibration = {fx, fy, cx, cy, k0, k1, k2, k3};
+        calibration_ = shared_ptr<CameraModel>(new KannalaBrandt8(vCalibration));
+        cout << "Camera: KannalaBrandt" << endl;
+    }
+   
     //Read (if exists) distortion parameters
     if(!fSettings["Camera.k1"].empty()){
         if(!fSettings["Camera.k3"].empty()){

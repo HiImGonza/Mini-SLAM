@@ -1,5 +1,6 @@
 %YAML:1.0
 
+Camera.type: "KannalaBrandt8"
 # Camera calibration and distortion parameters (OpenCV) 
 Camera.fx: 190.978477
 Camera.fy: 190.973307

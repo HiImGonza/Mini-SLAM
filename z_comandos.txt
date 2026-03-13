@@ -50,5 +50,9 @@ Map initialized with 142 MapPoints
 Map initialized with 163 MapPoints
 Map initialized with 212 MapPoints
 
+TASK 5
+
+./build/Apps/mono_tumvi ./Datasets/dataset-room1_512_16 
+
 
 

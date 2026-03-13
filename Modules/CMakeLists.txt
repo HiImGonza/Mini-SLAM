@@ -41,6 +41,7 @@ set(HEADER_FILES
 
 set(SOURCE_FILES
         ${root}/Calibration/PinHole.cc
+        ${root}/Calibration/KannalaBrandt8.cc
         ${root}/DatasetLoader/EurocVisualLoader.cc
         ${root}/DatasetLoader/TUMRGBDLoader.cc
         ${root}/DatasetLoader/TUMVILoader.cc
