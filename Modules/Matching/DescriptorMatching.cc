@@ -78,7 +78,7 @@ int searchForInitializaion(Frame& refFrame, Frame& currFrame, int th, vector<int
         float radius = windowSizeFactor * currFrame.getScaleFactor(nLastOctave);
         
         //Get candidates whose coordinates are close to the current point
-        currFrame.getFeaturesInArea(vCurrKeys[i].pt.x,vCurrKeys[i].pt.y, radius, nLastOctave-1, nLastOctave+1, vIndicesToCheck);
+        currFrame.getFeaturesInArea(vRefKeys[i].pt.x,vRefKeys[i].pt.y, radius, nLastOctave-1, nLastOctave+1, vIndicesToCheck);
 
         //Match with the one with the smallest Hamming distance
         int bestDist = 255, secondBestDist = 255;
@@ -96,7 +96,7 @@ int searchForInitializaion(Frame& refFrame, Frame& currFrame, int th, vector<int
                 secondBestDist = dist;
             }
         }
-        if(bestDist <= th && (float)bestDist < (float(secondBestDist)*0.8)){ // 0.9 puede ser parametrizable
+        if(bestDist <= th && (float)bestDist < (float(secondBestDist)*0.9)){ // 0.9 puede ser parametrizable
             vMatches[i] = bestIdx;
             nMatches++;
         } else {

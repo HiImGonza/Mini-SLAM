@@ -54,5 +54,16 @@ TASK 5
 
 ./build/Apps/mono_tumvi ./Datasets/dataset-room1_512_16 
 
+python3 Evaluation/evaluate_ate_scale.py Evaluation/GroundTruth/room1.txt ./trajectory_tumvi.txt --verbose --plot plot.png
+2.017723743033092,41,0.012241230128542143,0.010305002318349877,0.008783184613247254,0.006607165979353899,0.0020661420999378267,0.034787115397833086
 
-
+Indice de comienzo: 2415
+Indice de comienzo: 952
+Indice de comienzo: 840
+Indice de comienzo: 1773
+Indice de comienzo: 1831
+Indice de comienzo: 458
+Indice de comienzo: 2257
+Indice de comienzo: 1073
+Indice de comienzo: 1833
+Indice de comienzo: 2482

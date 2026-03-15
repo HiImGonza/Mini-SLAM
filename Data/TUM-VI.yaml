@@ -34,7 +34,7 @@ FeatureGrid.nGridRows: 48
 Epipolar.th: 0.004
 
 #Feature matching thresholds
-Matching.initialization: 40
+Matching.initialization: 50
 Matching.guidedMatching: 50
 Matching.searchByProjection: 100
 Matching.searchForTriangulation: 50

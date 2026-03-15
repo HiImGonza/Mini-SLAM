@@ -91,14 +91,17 @@ void KannalaBrandt8::projectJac(const Eigen::Vector3f& p3D, Eigen::Matrix<float,
 
     float dtheta_dx = dtheta_dr * dr_dx;
     float dtheta_dy = dtheta_dr * dr_dy;
-    float dtheta_dz = - (p3D[2] / r * r + p3D[2]*p3D[2]);
+    float dtheta_dz = - (r / (r * r + p3D[2]*p3D[2]));
 
-    float dd_dx = dtheta_dx + (3 * k0 * dtheta_dx * pow(theta, 2)) + (5 * k1 * dtheta_dx * pow(theta, 4)) + (7 * k2 * dtheta_dx * pow(theta, 6)) + (9 * k3 * dtheta_dx * pow(theta, 8));
+    float dd_dtheta = 1
+    + 3*k0*pow(theta,2)
+    + 5*k1*pow(theta,4)
+    + 7*k2*pow(theta,6)
+    + 9*k3*pow(theta,8);
 
-    float dd_dy = dtheta_dy + (3 * k0 * dtheta_dy * pow(theta, 2)) + (5 * k1 * dtheta_dy * pow(theta, 4)) + (7 * k2 * dtheta_dy * pow(theta, 6)) + (9 * k3 * dtheta_dy * pow(theta, 8));
-
-    float dd_dz = dtheta_dz + (3 * k0 * dtheta_dz * pow(theta, 2)) + (5 * k1 * dtheta_dz * pow(theta, 4)) + (7 * k2 * dtheta_dz * pow(theta, 6)) + (9 * k3 * dtheta_dz * pow(theta, 8));
-
+    float dd_dx = dd_dtheta * dtheta_dx;
+    float dd_dy = dd_dtheta * dtheta_dy;
+    float dd_dz = dd_dtheta * dtheta_dz;
 
 
     float du_dx = fx * ((dd_dx * p3D[0] / r) + (d / r) - ((dr_dx / (r * r)) * d * p3D[0]));
@@ -119,38 +122,6 @@ void KannalaBrandt8::projectJac(const Eigen::Vector3f& p3D, Eigen::Matrix<float,
 
 
 }
-
-// Eigen::Matrix<double, 2, 3> KannalaBrandt8::projectJac(const Eigen::Vector3d &v3D) {
-//     double x2 = v3D[0] * v3D[0], y2 = v3D[1] * v3D[1], z2 = v3D[2] * v3D[2];
-//     double r2 = x2 + y2;
-//     double r = sqrt(r2);
-//     double r3 = r2 * r;
-//     double theta = atan2(r, v3D[2]);
-
-//     double theta2 = theta * theta, theta3 = theta2 * theta;
-//     double theta4 = theta2 * theta2, theta5 = theta4 * theta;
-//     double theta6 = theta2 * theta4, theta7 = theta6 * theta;
-//     double theta8 = theta4 * theta4, theta9 = theta8 * theta;
-
-//     double f = theta + theta3 * mvParameters[4] + theta5 * mvParameters[5] + theta7 * mvParameters[6] +
-//                 theta9 * mvParameters[7];
-//     double fd = 1 + 3 * mvParameters[4] * theta2 + 5 * mvParameters[5] * theta4 + 7 * mvParameters[6] * theta6 +
-//                 9 * mvParameters[7] * theta8;
-
-//     Eigen::Matrix<double, 2, 3> JacGood;
-//     JacGood(0, 0) = mvParameters[0] * (fd * v3D[2] * x2 / (r2 * (r2 + z2)) + f * y2 / r3);
-//     JacGood(1, 0) =
-//             mvParameters[1] * (fd * v3D[2] * v3D[1] * v3D[0] / (r2 * (r2 + z2)) - f * v3D[1] * v3D[0] / r3);
-
-//     JacGood(0, 1) =
-//             mvParameters[0] * (fd * v3D[2] * v3D[1] * v3D[0] / (r2 * (r2 + z2)) - f * v3D[1] * v3D[0] / r3);
-//     JacGood(1, 1) = mvParameters[1] * (fd * v3D[2] * y2 / (r2 * (r2 + z2)) + f * x2 / r3);
-
-//     JacGood(0, 2) = -mvParameters[0] * fd * v3D[0] / (r2 + z2);
-//     JacGood(1, 2) = -mvParameters[1] * fd * v3D[1] / (r2 + z2);
-
-//     return JacGood;
-// }
 
 void KannalaBrandt8::unprojectJac(const Eigen::Vector2f& p2D, Eigen::Matrix<float,3,2>& Jac) {
     throw std::runtime_error("KannalaBrandt8::unprojectJac not implemented yet");

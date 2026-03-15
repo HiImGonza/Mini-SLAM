@@ -41,9 +41,15 @@ int main(int argc, char **argv){
     //Process the sequence
     cv::Mat currIm;
     double currTs;
+
+    srand(static_cast<unsigned int>(time(NULL)));
+    int totalFrames = sequence.getLenght();
+    int startIdx = (totalFrames > 0) ? (rand() % totalFrames) : 0;
+
+    cout << "Indice de comienzo: " << startIdx << endl;
     
     // Mantenemos el "getLenght()" si así está escrito en el código de tu profesor
-    for(int i = 0; i < sequence.getLenght(); i++){ 
+    for(int i = 0; i < totalFrames; i++){ 
         
         // 4. Extraemos la imagen
         sequence.getLeftImage(i, currIm);
