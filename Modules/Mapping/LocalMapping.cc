@@ -105,6 +105,58 @@ void LocalMapping::triangulateNewMapPoints() {
                  * Your code for Lab 4 - Task 2 here!
                  * Note that the last KeyFrame inserted is stored at this->currKeyFrame_
                  */
+                cv::Point2f p1 = currKeyFrame_->getKeyPoint(i).pt;
+                cv::Point2f p2 = pKF->getKeyPoint(vMatches[i]).pt;
+
+                // 1. Obtener rayos desproyectados usando la calibración y normalizarlos 
+                Eigen::Vector3f ray_curr = currKeyFrame_->getCalibration()->unproject(p1).transpose();
+                ray_curr.normalize();
+
+                Eigen::Vector3f ray_covisible = pKF->getCalibration()->unproject(p2).transpose();
+                ray_covisible.normalize();
+
+                // 2. Comprobar el paralaje [cite: 68]
+                float cosParallax = cosRayParallax(ray_curr, ray_covisible);
+                if(cosParallax > settings_.getMinCos()) continue; 
+
+                // 3. Triangulación 
+                Eigen::Vector3f x3D; 
+                triangulate(ray_curr, ray_covisible, T1w, T2w, x3D);
+
+                // 4. Verificación de Profundidad Positiva (delante de ambas cámaras) [cite: 47]
+                Eigen::Vector3f x3D_curr = T1w * x3D;
+                Eigen::Vector3f x3D_covisible = T2w * x3D;
+
+                if(x3D_curr(2) <= 0) continue; 
+                if(x3D_covisible(2) <= 0) continue; 
+
+                cv::Point2f proj1 = currKeyFrame_->getCalibration()->project(x3D_curr);
+                cv::Point2f proj2 = pKF->getCalibration()->project(x3D_covisible);
+
+                // 5. Verificación de Error de Reproyección [cite: 47, 69]
+                float err1 = squaredReprojectionError(p1, proj1);
+                float err2 = squaredReprojectionError(p2, proj2);
+
+                if(err1 > settings_.getEpipolarTh() || err2 > settings_.getEpipolarTh()) continue;
+                
+                // Si pasa todos los checks, instanciamos el MapPoint
+                std::shared_ptr<MapPoint> pNewMP = std::make_shared<MapPoint>(x3D);
+
+                // Vincular el MapPoint a los KeyFrames
+                currKeyFrame_->setMapPoint(i, pNewMP);
+                pKF->setMapPoint(vMatches[i], pNewMP);
+
+                pMap_->insertMapPoint(pNewMP);
+
+
+                pMap_->addObservation(currKeyFrame_->getId(), pNewMP->getId(), i);
+                pMap_->addObservation(pKF->getId(), pNewMP->getId(), vMatches[i]);
+
+                currKeyFrame_->setMapPoint(i, pNewMP);
+                pKF->setMapPoint(vMatches[i], pNewMP);
+
+                nTriangulated++;
+
             }
         }
     }
