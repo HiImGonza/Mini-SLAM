@@ -1,5 +1,6 @@
 %YAML:1.0
 
+Camera.type: "PinHole"
 # Camera calibration and distortion parameters
 Camera.fx: 458.654
 Camera.fy: 457.296

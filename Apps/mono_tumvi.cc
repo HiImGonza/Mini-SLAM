@@ -46,7 +46,7 @@ int main(int argc, char **argv){
     int totalFrames = sequence.getLenght();
     int startIdx = (totalFrames > 0) ? (rand() % totalFrames) : 0;
 
-    cout << "Indice de comienzo: " << startIdx << endl;
+    // cout << "Indice de comienzo: " << startIdx << endl;
     
     // Mantenemos el "getLenght()" si así está escrito en el código de tu profesor
     for(int i = 0; i < totalFrames; i++){ 

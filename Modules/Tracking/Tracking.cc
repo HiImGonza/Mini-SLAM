@@ -359,6 +359,19 @@ bool Tracking::needNewKeyFrame() {
      * Your code for Lab 4 - Task 1 here!
      */
 
+    const size_t TRACKING_POINTS = 80;
+    const size_t LAST_KF_MIN = 30; // 30 frames per second
+    const size_t LAST_KF_MAX = 100; 
+
+    bool conditionLastKF = (nFramesFromLastKF_ > LAST_KF_MAX);
+    bool conditionTracked = (nFeatTracked_ < TRACKING_POINTS) && (nFramesFromLastKF_ > LAST_KF_MIN);
+
+    if (conditionLastKF || conditionTracked) {
+        nFramesFromLastKF_ = 0;
+        return true;
+    }
+    
+    nFramesFromLastKF_++;
     return false;
 }
 

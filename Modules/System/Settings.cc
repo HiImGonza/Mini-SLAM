@@ -47,7 +47,7 @@ Settings::Settings(const std::string& configFile) {
    // TIP: std::string sModel = fSettings["Camera.type"];
    
    std::string sModel = fSettings["Camera.type"];
-   if (sModel == "PinHole") {
+   if (sModel == "PinHole" || sModel.empty()) {
         vector<float> vCalibration = {fx,fy,cx,cy};
 
         calibration_ = shared_ptr<CameraModel>(new PinHole(vCalibration));
