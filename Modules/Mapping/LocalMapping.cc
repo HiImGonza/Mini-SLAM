@@ -105,60 +105,139 @@ void LocalMapping::triangulateNewMapPoints() {
                  * Your code for Lab 4 - Task 2 here!
                  * Note that the last KeyFrame inserted is stored at this->currKeyFrame_
                  */
-                cv::Point2f p1 = currKeyFrame_->getKeyPoint(i).pt;
-                cv::Point2f p2 = pKF->getKeyPoint(vMatches[i]).pt;
+                // cv::Point2f p1 = currKeyFrame_->getKeyPoint(i).pt;
+                // cv::Point2f p2 = pKF->getKeyPoint(vMatches[i]).pt;
 
-                // 1. Obtener rayos desproyectados usando la calibración y normalizarlos 
-                Eigen::Vector3f ray_curr = currKeyFrame_->getCalibration()->unproject(p1).transpose();
-                ray_curr.normalize();
+                // // 1. Obtener rayos desproyectados usando la calibración y normalizarlos 
+                // Eigen::Vector3f ray_curr = currKeyFrame_->getCalibration()->unproject(p1).transpose();
+                // ray_curr.normalize();
 
-                Eigen::Vector3f ray_covisible = pKF->getCalibration()->unproject(p2).transpose();
-                ray_covisible.normalize();
+                // Eigen::Vector3f ray_covisible = pKF->getCalibration()->unproject(p2).transpose();
+                // ray_covisible.normalize();
+                
+                // // 2. Comprobar el paralaje [cite: 68]
+                // float cosParallax = cosRayParallax(ray_curr, ray_covisible);
+                // if(cosParallax > settings_.getMinCos()) continue; 
+                
+                // // 3. Triangulación 
+                // Eigen::Vector3f x3D; 
+                // triangulate(ray_curr, ray_covisible, T1w, T2w, x3D);
+                
+                // // 4. Verificación de Profundidad Positiva (delante de ambas cámaras) [cite: 47]
+                // Eigen::Vector3f x3D_curr = T1w * x3D;
+                // Eigen::Vector3f x3D_covisible = T2w * x3D;
 
-                // 2. Comprobar el paralaje [cite: 68]
-                float cosParallax = cosRayParallax(ray_curr, ray_covisible);
-                if(cosParallax > settings_.getMinCos()) continue; 
+                // if(x3D_curr(2) <= 0) continue; 
+                // if(x3D_covisible(2) <= 0) continue; 
 
-                // 3. Triangulación 
-                Eigen::Vector3f x3D; 
-                triangulate(ray_curr, ray_covisible, T1w, T2w, x3D);
+                // cv::Point2f proj1 = currKeyFrame_->getCalibration()->project(x3D_curr);
+                // cv::Point2f proj2 = pKF->getCalibration()->project(x3D_covisible);
 
-                // 4. Verificación de Profundidad Positiva (delante de ambas cámaras) [cite: 47]
-                Eigen::Vector3f x3D_curr = T1w * x3D;
-                Eigen::Vector3f x3D_covisible = T2w * x3D;
+                // // 5. Verificación de Error de Reproyección [cite: 47, 69]
+                // float err1 = squaredReprojectionError(p1, proj1);
+                // float err2 = squaredReprojectionError(p2, proj2);
 
-                if(x3D_curr(2) <= 0) continue; 
-                if(x3D_covisible(2) <= 0) continue; 
+                // if(err1 > settings_.getEpipolarTh() || err2 > settings_.getEpipolarTh()) continue;
+                
+                
+                // // Si pasa todos los checks, instanciamos el MapPoint
+                // std::shared_ptr<MapPoint> pNewMP = std::make_shared<MapPoint>(x3D);
 
-                cv::Point2f proj1 = currKeyFrame_->getCalibration()->project(x3D_curr);
-                cv::Point2f proj2 = pKF->getCalibration()->project(x3D_covisible);
+                // // Vincular el MapPoint a los KeyFrames
+                // currKeyFrame_->setMapPoint(i, pNewMP);
+                // pKF->setMapPoint(vMatches[i], pNewMP);
 
-                // 5. Verificación de Error de Reproyección [cite: 47, 69]
-                float err1 = squaredReprojectionError(p1, proj1);
-                float err2 = squaredReprojectionError(p2, proj2);
+                // pMap_->insertMapPoint(pNewMP);
 
-                if(err1 > settings_.getEpipolarTh() || err2 > settings_.getEpipolarTh()) continue;
+
+                // pMap_->addObservation(currKeyFrame_->getId(), pNewMP->getId(), i);
+                // pMap_->addObservation(pKF->getId(), pNewMP->getId(), vMatches[i]);
+
+                // currKeyFrame_->setMapPoint(i, pNewMP);
+                // pKF->setMapPoint(vMatches[i], pNewMP);
+
+                // nTriangulated++;
+
+                // 1. Obtener los índices de los puntos emparejados
+                int idx1 = i; 
+                int idx2 = vMatches[i];
+
+                // 2. Extraer los KeyPoints 2D de cada KeyFrame
+                cv::KeyPoint kp1 = currKeyFrame_->getKeyPoint(idx1);
+                cv::KeyPoint kp2 = pKF->getKeyPoint(idx2);
+
+                // 3. Desproyectar los puntos 2D a rayos 3D normalizados en la cámara
+                // unproject devuelve una matriz 1x3, la transponemos a Vector3f (3x1)
+                Eigen::Vector3f xn1 = currKeyFrame_->getCalibration()->unproject(kp1.pt).transpose();
+                Eigen::Vector3f xn2 = pKF->getCalibration()->unproject(kp2.pt).transpose();
+
+                // 4. Triangulación del punto 3D
+                Eigen::Vector3f x3D;
+                triangulate(xn1, xn2, T1w, T2w, x3D);
+
+                // --- VALIDACIONES GEOMÉTRICAS ---
+
+                // Transformar el punto 3D a las coordenadas locales de cada cámara
+                Eigen::Vector3f x3D_c1 = T1w * x3D;
+                Eigen::Vector3f x3D_c2 = T2w * x3D;
+
+                // CHECK 1: Profundidad positiva (El punto debe estar delante de ambas cámaras)
+                if (x3D_c1.z() <= 0 || x3D_c2.z() <= 0) {
+                    continue; 
+                }
+
+                // CHECK 2: Paralaje suficiente
+                Eigen::Vector3f O1 = T1w.inverse().translation();
+                Eigen::Vector3f O2 = T2w.inverse().translation();
+                Eigen::Vector3f ray1 = x3D - O1;
+                Eigen::Vector3f ray2 = x3D - O2;
+                
+                float cosParallax = cosRayParallax(ray1, ray2);
+                
+                // Si el coseno es mayor a ~0.9998 (aprox 1 grado), los rayos son casi paralelos.
+                if (cosParallax > 0.9998) {
+                    continue; 
+                }
+
+                // CHECK 3: Error de reproyección bajo
+                cv::Point2f proj1 = currKeyFrame_->getCalibration()->project(x3D_c1);
+                cv::Point2f proj2 = pKF->getCalibration()->project(x3D_c2);
+
+                float err1 = squaredReprojectionError(kp1.pt, proj1);
+                float err2 = squaredReprojectionError(kp2.pt, proj2);
+
+                // Asumimos un umbral de chi-cuadrado para 2 grados de libertad.
+                // Como las coordenadas de la imagen no están estandarizadas por la incertidumbre (sigma) aquí,
+                // un valor típico empírico en pixeles suele estar entre 2.0 y 5.99.
+                float thError = 5.99; 
+                if (err1 > thError || err2 > thError) {
+                    continue;
+                }
+
+                // --- CREACIÓN E INSERCIÓN DEL MAPPOINT ---
                 
                 // Si pasa todos los checks, instanciamos el MapPoint
                 std::shared_ptr<MapPoint> pNewMP = std::make_shared<MapPoint>(x3D);
 
                 // Vincular el MapPoint a los KeyFrames
-                currKeyFrame_->setMapPoint(i, pNewMP);
-                pKF->setMapPoint(vMatches[i], pNewMP);
+                currKeyFrame_->setMapPoint(idx1, pNewMP);
+                pKF->setMapPoint(idx2, pNewMP);
 
                 pMap_->insertMapPoint(pNewMP);
 
 
-                pMap_->addObservation(currKeyFrame_->getId(), pNewMP->getId(), i);
-                pMap_->addObservation(pKF->getId(), pNewMP->getId(), vMatches[i]);
+                pMap_->addObservation(currKeyFrame_->getId(), pNewMP->getId(), idx1);
+                pMap_->addObservation(pKF->getId(), pNewMP->getId(), idx2);
 
-                currKeyFrame_->setMapPoint(i, pNewMP);
-                pKF->setMapPoint(vMatches[i], pNewMP);
+                currKeyFrame_->setMapPoint(idx1, pNewMP);
+                pKF->setMapPoint(idx2, pNewMP);
 
                 nTriangulated++;
 
             }
         }
+
+        cout << "Triangulated: " << nTriangulated << endl;
     }
 }
 

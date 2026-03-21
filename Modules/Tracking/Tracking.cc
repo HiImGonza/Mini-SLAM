@@ -360,13 +360,13 @@ bool Tracking::needNewKeyFrame() {
      */
 
     const size_t TRACKING_POINTS = 200;
-    const size_t LAST_KF_MIN = 5; // 30 frames per second
+    const size_t LAST_KF_MIN = 2; // 30 frames per second
     const size_t LAST_KF_MAX = 30; 
 
     bool conditionLastKF = (nFramesFromLastKF_ > LAST_KF_MAX);
     bool conditionTracked = (nFeatTracked_ < TRACKING_POINTS) && (nFramesFromLastKF_ > LAST_KF_MIN);
 
-    if (conditionLastKF || conditionTracked) {
+    if (nFramesFromLastKF_ > LAST_KF_MIN) {
         nFramesFromLastKF_ = 0;
         return true;
     }
