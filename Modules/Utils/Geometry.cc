@@ -66,9 +66,9 @@ Eigen::Matrix<float,3,3> computeEssentialMatrixFromPose(Sophus::SE3f& T12){
     Eigen::Vector3f t = T12.translation();
 
     Eigen::Matrix3f t_skew;
-    t_skew << 0,    -t(2),  t(1),
-              t(2),  0,    -t(0),
-             -t(1),  t(0),  0;
+    t_skew << 0.0f,    -t(2),  t(1),
+              t(2),  0.0f,    -t(0),
+             -t(1),  t(0),  0.0f;
 
     E = t_skew * R;
 

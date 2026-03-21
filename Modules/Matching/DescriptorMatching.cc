@@ -79,6 +79,7 @@ int searchForInitializaion(Frame& refFrame, Frame& currFrame, int th, vector<int
         
         //Get candidates whose coordinates are close to the current point
         currFrame.getFeaturesInArea(vRefKeys[i].pt.x,vRefKeys[i].pt.y, radius, nLastOctave-1, nLastOctave+1, vIndicesToCheck);
+        // currFrame.getFeaturesInArea(vPrevMatched[i].x,vPrevMatched[i].y, radius, nLastOctave-1, nLastOctave+1, vIndicesToCheck);
 
         //Match with the one with the smallest Hamming distance
         int bestDist = 255, secondBestDist = 255;
@@ -369,7 +370,51 @@ int fuse(std::shared_ptr<KeyFrame> pKF, int th, std::vector<std::shared_ptr<MapP
         /*
          * Your code for Lab 4 - Task 3 here!
          */
+
+        float radius = 3;
+
+        Eigen::Vector3f p3Dc = Tcw*pMP->getWorldPosition();
+        if(p3Dc.z() <= 0.0f) continue;
+        cv::Point2f uv = calibration->project(p3Dc);
+
+        pKF->getFeaturesInArea(uv.x,uv.y, radius, -1, -1, vIndicesToCheck);
+
+        if(vIndicesToCheck.empty()) continue;
+
+        cv::Mat mpDescriptor = pMP->getDescriptor();
+        int bestDist = 255, secondBestDist = 255;
+        int bestIdx = -1;
+
+        for(auto j : vIndicesToCheck){
+            int dist = HammingDistance(mpDescriptor, descMat.row(j));
+
+            if(dist < bestDist){
+                secondBestDist = bestDist;
+                bestDist = dist;
+                bestIdx = j;
+            }
+            else if(dist < secondBestDist){
+                secondBestDist = dist;
+            }
+        }
+        if(bestDist <= th && bestDist < 0.9 * secondBestDist){
+            shared_ptr<MapPoint> pMPinKF = vKFMps[bestIdx];
+
+            if(!pMPinKF){
+                // Si el matched KeyPoint NO tiene un MapPoint asociado, añadir observación 
+                pMap->addObservation(pMP->getId(), pKF->getId(), bestIdx); // Ajusta a la firma exacta de addObservation 
+                // cout << "ObsercationAdded: "<< endl; 
+
+            } else if(pMP->getId() != pMPinKF->getId()){
+                // De lo contrario, fusionar ambos MapPoints 
+                // Solo fusionamos si no son exactamente el mismo MapPoint
+                pMap->fuseMapPoints(pMP->getId(), pMPinKF->getId()); // 
+                nFused++;
+            }
+        }
     }
+
+    // cout << "Nfused: " << nFused << endl; 
 
     return nFused;
 }

@@ -358,20 +358,23 @@ bool Tracking::needNewKeyFrame() {
     /*
      * Your code for Lab 4 - Task 1 here!
      */
+    nFramesFromLastKF_++;
 
-    const size_t TRACKING_POINTS = 200;
+    const size_t TRACKING_POINTS = 20;
     const size_t LAST_KF_MIN = 2; // 30 frames per second
     const size_t LAST_KF_MAX = 30; 
 
-    bool conditionLastKF = (nFramesFromLastKF_ > LAST_KF_MAX);
-    bool conditionTracked = (nFeatTracked_ < TRACKING_POINTS) && (nFramesFromLastKF_ > LAST_KF_MIN);
+    const int newAreaTh = settings_.getFeaturesPerImage() * 0.9; 
 
-    if (nFramesFromLastKF_ > LAST_KF_MIN) {
+    bool minFramesHasPassed = (nFramesFromLastKF_ > LAST_KF_MIN);
+    bool notLost = (nFeatTracked_ > TRACKING_POINTS);
+    bool newInformation = (nFeatTracked_ < newAreaTh) || (nFramesFromLastKF_ > LAST_KF_MAX);
+
+    if (minFramesHasPassed && notLost && newInformation) {
         nFramesFromLastKF_ = 0;
         return true;
     }
     
-    nFramesFromLastKF_++;
     return false;
 }
 
