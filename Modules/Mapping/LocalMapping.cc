@@ -54,50 +54,65 @@ void LocalMapping::mapPointCulling() {
     /*
      * Your code for Lab 4 - Task 4 here!
      */
-     
-}
 
+    auto& mMapPoints = pMap_->getMapPoints();
+    int MIN_OBSERVATIONS = 2;
+    int pointsEliminated = 0;
 
-void LocalMapping::MapPointCulling()
-{
-    // Check Recent Added MapPoints
-    list<MapPoint*>::iterator lit = mlpRecentAddedMapPoints.begin();
-    const unsigned long int nCurrentKFid = mpCurrentKeyFrame->mnId;
+    for (auto& pair : mMapPoints){
+        ID mID = pair.first;
+        std::shared_ptr<MapPoint> pMP = pair.second;
 
-    int nThObs;
-    if(mbMonocular)
-        nThObs = 2;
-    else
-        nThObs = 3;
-    const int cnThObs = nThObs;
-
-    int borrar = mlpRecentAddedMapPoints.size();
-
-    while(lit!=mlpRecentAddedMapPoints.end())
-    {
-        MapPoint* pMP = *lit;
-
-        if(pMP->isBad())
-            lit = mlpRecentAddedMapPoints.erase(lit);
-        else if(pMP->GetFoundRatio()<0.25f)
-        {
-            pMP->SetBadFlag();
-            lit = mlpRecentAddedMapPoints.erase(lit);
-        }
-        else if(((int)nCurrentKFid-(int)pMP->mnFirstKFid)>=2 && pMP->Observations()<=cnThObs)
-        {
-            pMP->SetBadFlag();
-            lit = mlpRecentAddedMapPoints.erase(lit);
-        }
-        else if(((int)nCurrentKFid-(int)pMP->mnFirstKFid)>=3)
-            lit = mlpRecentAddedMapPoints.erase(lit);
-        else
-        {
-            lit++;
-            borrar--;
+        if (pMap_->getNumberOfObservations(mID) < MIN_OBSERVATIONS) {
+            pMap_->removeMapPoint(mID);
+            pointsEliminated++;
         }
     }
+    cout << "Points Eliminated: " << pointsEliminated << endl;
+    
 }
+
+
+// void LocalMapping::MapPointCulling()
+// {
+//     // Check Recent Added MapPoints
+//     list<MapPoint*>::iterator lit = mlpRecentAddedMapPoints.begin();
+//     const unsigned long int nCurrentKFid = mpCurrentKeyFrame->mnId;
+
+//     int nThObs;
+//     if(mbMonocular)
+//         nThObs = 2;
+//     else
+//         nThObs = 3;
+//     const int cnThObs = nThObs;
+
+//     int borrar = mlpRecentAddedMapPoints.size();
+
+//     while(lit!=mlpRecentAddedMapPoints.end())
+//     {
+//         MapPoint* pMP = *lit;
+
+//         if(pMP->isBad())
+//             lit = mlpRecentAddedMapPoints.erase(lit);
+//         else if(pMP->GetFoundRatio()<0.25f)
+//         {
+//             pMP->SetBadFlag();
+//             lit = mlpRecentAddedMapPoints.erase(lit);
+//         }
+//         else if(((int)nCurrentKFid-(int)pMP->mnFirstKFid)>=2 && pMP->Observations()<=cnThObs)
+//         {
+//             pMP->SetBadFlag();
+//             lit = mlpRecentAddedMapPoints.erase(lit);
+//         }
+//         else if(((int)nCurrentKFid-(int)pMP->mnFirstKFid)>=3)
+//             lit = mlpRecentAddedMapPoints.erase(lit);
+//         else
+//         {
+//             lit++;
+//             borrar--;
+//         }
+//     }
+// }
 
 void LocalMapping::triangulateNewMapPoints() {
     //Get a list of the best covisible KeyFrames with the current one
