@@ -55,20 +55,20 @@ void LocalMapping::mapPointCulling() {
      * Your code for Lab 4 - Task 4 here!
      */
 
-    auto& mMapPoints = pMap_->getMapPoints();
-    int MIN_OBSERVATIONS = 2;
-    int pointsEliminated = 0;
+    // auto& mMapPoints = pMap_->getMapPoints();
+    // int MIN_OBSERVATIONS = 2;
+    // int pointsEliminated = 0;
 
-    for (auto& pair : mMapPoints){
-        ID mID = pair.first;
-        std::shared_ptr<MapPoint> pMP = pair.second;
+    // for (auto& pair : mMapPoints){
+    //     ID mID = pair.first;
+    //     std::shared_ptr<MapPoint> pMP = pair.second;
 
-        if (pMap_->getNumberOfObservations(mID) < MIN_OBSERVATIONS) {
-            pMap_->removeMapPoint(mID);
-            pointsEliminated++;
-        }
-    }
-    cout << "Points Eliminated: " << pointsEliminated << endl;
+    //     if (pMap_->getNumberOfObservations(mID) < MIN_OBSERVATIONS) {
+    //         pMap_->removeMapPoint(mID);
+    //         pointsEliminated++;
+    //     }
+    // }
+    // cout << "Points Eliminated: " << pointsEliminated << endl;
     
 }
 
@@ -164,6 +164,11 @@ void LocalMapping::triangulateNewMapPoints() {
                  * Your code for Lab 4 - Task 2 here!
                  * Note that the last KeyFrame inserted is stored at this->currKeyFrame_
                  */
+                if(currKeyFrame_->getMapPoints()[i] != nullptr)
+                    continue;
+                // No triangular si el KF covisible ya tiene MP en este índice  
+                if(pKF->getMapPoints()[vMatches[i]] != nullptr)
+                    continue;
                 cv::Point2f p1 = currKeyFrame_->getKeyPoint(i).pt;
                 cv::Point2f p2 = pKF->getKeyPoint(vMatches[i]).pt;
 
@@ -193,7 +198,7 @@ void LocalMapping::triangulateNewMapPoints() {
 
                 float cosParallax = cosRayParallax(ray1, ray2);
 
-                if (cosParallax > 0.9998)
+                if (cosParallax > settings_.getMinCos())
                     continue;
 
                 // 5. Reprojection error

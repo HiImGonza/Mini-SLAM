@@ -59,7 +59,9 @@ class StructureOnlySolver : public OptimizationAlgorithm
   public:
     StructureOnlySolver()
     {
-      _verbose = true;
+      // _verbose = true;
+      _verbose = false;
+
     }
 
     virtual OptimizationAlgorithm::SolverResult solve(int iteration, bool online = false)
