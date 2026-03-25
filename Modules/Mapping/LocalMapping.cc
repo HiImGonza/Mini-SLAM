@@ -50,26 +50,73 @@ void LocalMapping::doMapping(std::shared_ptr<KeyFrame> &pCurrKeyFrame) {
     localBundleAdjustment(pMap_.get(),currKeyFrame_->getId());
 }
 
-void LocalMapping::mapPointCulling() {
-    /*
-     * Your code for Lab 4 - Task 4 here!
-     */
+// void LocalMapping::mapPointCulling() {
+//     /*
+//      * Your code for Lab 4 - Task 4 here!
+//      */
 
-    // auto& mMapPoints = pMap_->getMapPoints();
-    // int MIN_OBSERVATIONS = 2;
-    // int pointsEliminated = 0;
+//     auto& mMapPoints = pMap_->getMapPoints();
+//     int MIN_OBSERVATIONS = 3;
+//     int pointsEliminated = 0;
 
-    // for (auto& pair : mMapPoints){
-    //     ID mID = pair.first;
-    //     std::shared_ptr<MapPoint> pMP = pair.second;
+//     std::vector<ID> toRemove;
 
-    //     if (pMap_->getNumberOfObservations(mID) < MIN_OBSERVATIONS) {
-    //         pMap_->removeMapPoint(mID);
-    //         pointsEliminated++;
-    //     }
-    // }
-    // cout << "Points Eliminated: " << pointsEliminated << endl;
+//     for (auto& pair : mMapPoints){
+//         ID mID = pair.first;
+//         std::shared_ptr<MapPoint> pMP = pair.second;
+
+//         cout << pMap_->getNumberOfObservations(mID) << endl;
+
+//         if (pMap_->getNumberOfObservations(mID) < MIN_OBSERVATIONS) {
+//             pMap_->removeMapPoint(mID);
+//             pointsEliminated++;
+
+//             toRemove.push_back(mID);
+//         }
+//     }
+
+//     for(ID mID : toRemove){
+//         pMap_->removeMapPoint(mID);
+//     }
+//     cout << "Points Eliminated: " << pointsEliminated << endl;
     
+// }
+
+void LocalMapping::mapPointCulling() {
+
+    auto& mMapPoints = pMap_->getMapPoints();
+    auto& mKeyFrames = pMap_->getKeyFrames();
+
+    int removed = 0;
+
+    for (auto& pair : mMapPoints){
+
+        ID mpId = pair.first;
+
+        int nObs = pMap_->getNumberOfObservations(mpId);
+
+        if(nObs <= 2){
+
+            for(auto& kfPair : mKeyFrames){
+
+                ID kfId = kfPair.first;
+                auto pKF = kfPair.second;
+
+                int idx = pMap_->isMapPointInKeyFrame(mpId, kfId);
+
+                if(idx != -1){
+
+                    pKF->setMapPoint(idx, nullptr);
+
+                    pMap_->removeObservation(kfId, mpId);
+                }
+            }
+
+            removed++;
+        }
+    }
+
+    cout << "Points culled: " << removed << endl;
 }
 
 
