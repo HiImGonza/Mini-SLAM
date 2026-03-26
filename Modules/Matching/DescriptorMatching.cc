@@ -344,15 +344,13 @@ int fuse(std::shared_ptr<KeyFrame> pKF, int th, std::vector<std::shared_ptr<MapP
     Sophus::SE3f Tcw = pKF->getPose();
     shared_ptr<CameraModel> calibration = pKF->getCalibration();
 
-    vector<size_t> vIndicesToCheck(100);
-
-    vector<shared_ptr<MapPoint>>& vKFMps = pKF->getMapPoints();
+    vector<size_t> vIndicesToCheck;
+    vIndicesToCheck.reserve(100);
 
     cv::Mat descMat = pKF->getDescriptors();
     int nFused = 0;
 
     for(size_t i = 0; i < vMapPoints.size(); i++){
-        //Clear previous matches
         vIndicesToCheck.clear();
 
         shared_ptr<MapPoint> pMP = vMapPoints[i];
@@ -360,61 +358,108 @@ int fuse(std::shared_ptr<KeyFrame> pKF, int th, std::vector<std::shared_ptr<MapP
         if(!pMP)
             continue;
 
+        // Verificar que el MP sigue existiendo en el mapa
+        if(pMap->getMapPoint(pMP->getId()) == nullptr)
+            continue;
+
         if(pMap->getNumberOfObservations(pMP->getId()) == 0)
             continue;
 
-        if(pMap->isMapPointInKeyFrame(pMP->getId(),pKF->getId()) != -1){
+        if(pMap->isMapPointInKeyFrame(pMP->getId(), pKF->getId()) != -1)
             continue;
-        }
 
-        /*
-         * Your code for Lab 4 - Task 3 here!
-         */
+        // Proyectar y verificar que está delante de la cámara
+        Eigen::Vector3f p3Dc = Tcw * pMP->getWorldPosition();
+        if(p3Dc.z() <= 0.0f)
+            continue;
 
-        float radius = 3;
-
-        Eigen::Vector3f p3Dc = Tcw*pMP->getWorldPosition();
-        if(p3Dc.z() <= 0.0f) continue;
         cv::Point2f uv = calibration->project(p3Dc);
 
-        pKF->getFeaturesInArea(uv.x,uv.y, radius, -1, -1, vIndicesToCheck);
+        // Radio proporcional a la escala
+        float dist3D = p3Dc.norm();
+        float maxDistance = pMP->getMaxDistanceInvariance();
+        float minDistance = pMP->getMinDistanceInvariance();
 
-        if(vIndicesToCheck.empty()) continue;
+        if(dist3D < minDistance || dist3D > maxDistance)
+            continue;
+
+        int predictedOctave = (int)ceil(log(maxDistance / dist3D) / log(pKF->getScaleFactor(1)));
+        if(predictedOctave < 0)
+            predictedOctave = 0;
+        else if(predictedOctave >= pKF->getNumberOfScales())
+            predictedOctave = pKF->getNumberOfScales() - 1;
+
+        float radius = 3.0f * pKF->getScaleFactor(predictedOctave);
+
+        pKF->getFeaturesInArea(uv.x, uv.y, radius, predictedOctave-1, predictedOctave+1, vIndicesToCheck);
+
+        if(vIndicesToCheck.empty())
+            continue;
 
         cv::Mat mpDescriptor = pMP->getDescriptor();
         int bestDist = 255, secondBestDist = 255;
         int bestIdx = -1;
 
         for(auto j : vIndicesToCheck){
-            int dist = HammingDistance(mpDescriptor, descMat.row(j));
+            if(j >= (size_t)descMat.rows)
+                continue;
 
-            if(dist < bestDist){
+            int d = HammingDistance(mpDescriptor, descMat.row(j));
+            if(d < bestDist){
                 secondBestDist = bestDist;
-                bestDist = dist;
-                bestIdx = j;
+                bestDist = d;
+                bestIdx = (int)j;
             }
-            else if(dist < secondBestDist){
-                secondBestDist = dist;
+            else if(d < secondBestDist){
+                secondBestDist = d;
             }
         }
-        if(bestDist <= th && bestDist < 0.9 * secondBestDist){
-            shared_ptr<MapPoint> pMPinKF = vKFMps[bestIdx];
 
-            if(!pMPinKF){
-                // Si el matched KeyPoint NO tiene un MapPoint asociado, añadir observación 
-                pMap->addObservation(pMP->getId(), pKF->getId(), bestIdx); // Ajusta a la firma exacta de addObservation 
-                // cout << "ObsercationAdded: "<< endl; 
+        if(bestIdx == -1)
+            continue;
 
-            } else if(pMP->getId() != pMPinKF->getId()){
-                // De lo contrario, fusionar ambos MapPoints 
-                // Solo fusionamos si no son exactamente el mismo MapPoint
-                pMap->fuseMapPoints(pMP->getId(), pMPinKF->getId()); // 
-                nFused++;
-            }
+        if(!(bestDist <= th && (float)bestDist < 0.9f * (float)secondBestDist))
+            continue;
+
+        // Recargar vKFMps porque iteraciones anteriores pueden haber modificado el mapa
+        vector<shared_ptr<MapPoint>>& vKFMps = pKF->getMapPoints();
+
+        if((size_t)bestIdx >= vKFMps.size())
+            continue;
+
+        shared_ptr<MapPoint> pMPinKF = vKFMps[bestIdx];
+
+        if(!pMPinKF){
+            // KeyPoint sin MapPoint → añadir observación
+            // firma correcta: addObservation(kfId, mpId, idx)
+            if(pMap->getMapPoint(pMP->getId()) == nullptr)
+                continue;
+            pMap->addObservation(pKF->getId(), pMP->getId(), (size_t)bestIdx);
+            pKF->setMapPoint((size_t)bestIdx, pMP);
+            nFused++;
+
+        } else if(pMP->getId() != pMPinKF->getId()){
+            // Verificar que ambos MPs existen en el mapa
+            if(pMap->getMapPoint(pMP->getId()) == nullptr)
+                continue;
+            if(pMap->getMapPoint(pMPinKF->getId()) == nullptr)
+                continue;
+
+            // ← FIX DEL SLOT HUÉRFANO:
+            // Determinar cuál MP sobrevivirá (el de más observaciones)
+            int obs1 = pMap->getNumberOfObservations(pMP->getId());
+            int obs2 = pMap->getNumberOfObservations(pMPinKF->getId());
+            ID mpToKeep = (obs1 > obs2) ? pMP->getId() : pMPinKF->getId();
+
+            // Si el MP que sobrevive ya tiene observación en este KF,
+            // fuseMapPoints dejará el slot huérfano → no fusionar
+            if(pMap->isMapPointInKeyFrame(mpToKeep, pKF->getId()) != -1)
+                continue;
+
+            pMap->fuseMapPoints(pMP->getId(), pMPinKF->getId());
+            nFused++;
         }
     }
-
-    // cout << "Nfused: " << nFused << endl; 
 
     return nFused;
 }

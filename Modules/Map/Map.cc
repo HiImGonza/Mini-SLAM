@@ -41,7 +41,9 @@ void Map::insertKeyFrame(std::shared_ptr<KeyFrame> pKF) {
 void Map::removeMapPoint(ID id) {
     //Update observation graph
     unordered_map<ID,size_t> mMPObsToDelete = mMapPointObs_[id];
+
     for(pair<ID,size_t> pair : mMPObsToDelete){
+
         ID kfId = pair.first;
         size_t idx = pair.second;
 
@@ -51,6 +53,7 @@ void Map::removeMapPoint(ID id) {
 
     mMapPoints_.erase(id);
     mMapPointObs_.erase(id);
+
 }
 
 std::shared_ptr<KeyFrame> Map::getKeyFrame(ID id) {

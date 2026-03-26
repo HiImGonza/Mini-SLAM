@@ -67,6 +67,8 @@ private:
 
     std::shared_ptr<KeyFrame> currKeyFrame_;
 
+    std::unordered_map<ID, ID> mRecentMapPoints_;
+
     Settings settings_;
 };
 
