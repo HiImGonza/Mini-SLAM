@@ -20,3 +20,7 @@ target_link_libraries(${PROGRAM_NAME} ${OpenCV_LIBS} mini_slam)
 set(PROGRAM_NAME mono_tumvi)
 add_executable(${PROGRAM_NAME} mono_tumvi.cc)
 target_link_libraries(${PROGRAM_NAME} ${OpenCV_LIBS} mini_slam)
+
+set(PROGRAM_NAME mono_own_dataset)
+add_executable(${PROGRAM_NAME} mono_own_dataset.cc)
+target_link_libraries(${PROGRAM_NAME} ${OpenCV_LIBS} mini_slam)

@@ -24,6 +24,8 @@
 #include "DatasetLoader/EurocVisualLoader.h"
 #include "System/MiniSLAM.h"
 
+#include <chrono>
+
 #include <opencv2/opencv.hpp>
 
 using namespace std;
@@ -52,15 +54,28 @@ int main(int argc, char **argv){
         return -2;
     }
 
+    std::vector<double> processingTimes;
+
     //Process the sequence
     cv::Mat currIm;
     double currTs;
-    for(int i = 700; i < sequence.getLenght(); i++){
+    for(int i = 150; i < sequence.getLenght(); i++){
+        
         sequence.getLeftImage(i,currIm);
         sequence.getTimeStamp(i,currTs);
-
         Sophus::SE3f Tcw;
-        if(SLAM.processImage(currIm, Tcw)){
+
+        auto start = std::chrono::high_resolution_clock::now();
+        
+        bool isProcessed = SLAM.processImage(currIm, Tcw);
+        
+        // Paramos el cronómetro
+        auto end = std::chrono::high_resolution_clock::now();
+
+        if(isProcessed){
+            double time_ms = std::chrono::duration<double, std::milli>(end - start).count();
+            processingTimes.push_back(time_ms);
+
             Sophus::SE3f Twc = Tcw.inverse();
             //Save predicted pose to the file
             trajectoryFile << setprecision(17) << currTs*1e9 << "," << setprecision(7) << Twc.translation()(0) << ",";
@@ -71,6 +86,43 @@ int main(int argc, char **argv){
     }
 
     trajectoryFile.close();
+    
+// Cálculo de estadísticas y guardado
+    if (!processingTimes.empty()) {
+        size_t n = processingTimes.size();
+
+        // 1. Media
+        double sum = std::accumulate(processingTimes.begin(), processingTimes.end(), 0.0);
+        double mean = sum / n;
+
+        // 2. Desviación Estándar
+        double variance_sum = 0.0;
+        for (double t : processingTimes) {
+            variance_sum += (t - mean) * (t - mean);
+        }
+        double std_dev = std::sqrt(variance_sum / n);
+
+        // 3. Mediana
+        std::sort(processingTimes.begin(), processingTimes.end());
+        double median = 0.0;
+        if (n % 2 == 0) {
+            median = (processingTimes[n/2 - 1] + processingTimes[n/2]) / 2.0;
+        } else {
+            median = processingTimes[n/2];
+        }
+
+        // Abrir el fichero en modo append (añadir)
+        ofstream statsFile("timing_stats.txt", ios::app);
+        if(statsFile.is_open()){
+            // Guardar solo los números separados por comas en una sola línea
+            // Formato: media,mediana,desviacion_estandar
+            statsFile << mean << "," << median << "," << std_dev << endl;
+            statsFile.close();
+        } else {
+            cerr << "[Error]: No se pudo abrir o crear el archivo de estadisticas." << endl;
+        }
+
+    }
 
     return 0;
 }

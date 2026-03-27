@@ -42,8 +42,8 @@ int main(int argc, char **argv){
     TUMRGBDLoader sequence(datasetPath, datasetPath + "/rgb.txt");
 
     //Create SLAM system
-    MiniSLAM SLAM("Data/Leyre.yaml");
-    // MiniSLAM SLAM("Data/Gonzalo.yaml");
+    // MiniSLAM SLAM("Data/Leyre.yaml");
+    MiniSLAM SLAM("Data/Gonzalo.yaml");
 
     //File to store the trajectory
     ofstream trajectoryFile ("trajectory.txt");

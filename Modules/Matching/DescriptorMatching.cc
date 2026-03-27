@@ -298,7 +298,7 @@ int searchForTriangulation(KeyFrame* kf1, KeyFrame* kf2, int th, float fEpipolar
         int bestDist = 255, secondBestDist = 255;
         size_t bestIdx;
         for(size_t j = 0; j < vMapPoints2.size(); j++){
-            if(vMapPoints2[j] || vbMatched2[2])
+            if(vMapPoints2[j] || vbMatched2[j])
                 continue;
 
             int dist = HammingDistance(desc1.row(i),desc2.row(j));
@@ -331,7 +331,7 @@ int searchForTriangulation(KeyFrame* kf1, KeyFrame* kf2, int th, float fEpipolar
 
             vMatches[i] = bestIdx;
             vnMatches21[bestIdx]= i;
-            vbMatched2[bestDist] = true;
+            vbMatched2[bestIdx] = true;
             vMatchedDistance[bestIdx]=bestDist;
             nMatches++;
         }
@@ -368,97 +368,97 @@ int fuse(std::shared_ptr<KeyFrame> pKF, int th, std::vector<std::shared_ptr<MapP
         if(pMap->isMapPointInKeyFrame(pMP->getId(), pKF->getId()) != -1)
             continue;
 
-        // Proyectar y verificar que está delante de la cámara
-        Eigen::Vector3f p3Dc = Tcw * pMP->getWorldPosition();
-        if(p3Dc.z() <= 0.0f)
-            continue;
+        // // Proyectar y verificar que está delante de la cámara
+        // Eigen::Vector3f p3Dc = Tcw * pMP->getWorldPosition();
+        // if(p3Dc.z() <= 0.0f)
+        //     continue;
 
-        cv::Point2f uv = calibration->project(p3Dc);
+        // cv::Point2f uv = calibration->project(p3Dc);
 
-        // Radio proporcional a la escala
-        float dist3D = p3Dc.norm();
-        float maxDistance = pMP->getMaxDistanceInvariance();
-        float minDistance = pMP->getMinDistanceInvariance();
+        // // Radio proporcional a la escala
+        // float dist3D = p3Dc.norm();
+        // float maxDistance = pMP->getMaxDistanceInvariance();
+        // float minDistance = pMP->getMinDistanceInvariance();
 
-        if(dist3D < minDistance || dist3D > maxDistance)
-            continue;
+        // if(dist3D < minDistance || dist3D > maxDistance)
+        //     continue;
 
-        int predictedOctave = (int)ceil(log(maxDistance / dist3D) / log(pKF->getScaleFactor(1)));
-        if(predictedOctave < 0)
-            predictedOctave = 0;
-        else if(predictedOctave >= pKF->getNumberOfScales())
-            predictedOctave = pKF->getNumberOfScales() - 1;
+        // int predictedOctave = (int)ceil(log(maxDistance / dist3D) / log(pKF->getScaleFactor(1)));
+        // if(predictedOctave < 0)
+        //     predictedOctave = 0;
+        // else if(predictedOctave >= pKF->getNumberOfScales())
+        //     predictedOctave = pKF->getNumberOfScales() - 1;
 
-        float radius = 3.0f * pKF->getScaleFactor(predictedOctave);
+        // float radius = 3.0f * pKF->getScaleFactor(predictedOctave);
 
-        pKF->getFeaturesInArea(uv.x, uv.y, radius, predictedOctave-1, predictedOctave+1, vIndicesToCheck);
+        // pKF->getFeaturesInArea(uv.x, uv.y, radius, predictedOctave-1, predictedOctave+1, vIndicesToCheck);
 
-        if(vIndicesToCheck.empty())
-            continue;
+        // if(vIndicesToCheck.empty())
+        //     continue;
 
-        cv::Mat mpDescriptor = pMP->getDescriptor();
-        int bestDist = 255, secondBestDist = 255;
-        int bestIdx = -1;
+        // cv::Mat mpDescriptor = pMP->getDescriptor();
+        // int bestDist = 255, secondBestDist = 255;
+        // int bestIdx = -1;
 
-        for(auto j : vIndicesToCheck){
-            if(j >= (size_t)descMat.rows)
-                continue;
+        // for(auto j : vIndicesToCheck){
+        //     if(j >= (size_t)descMat.rows)
+        //         continue;
 
-            int d = HammingDistance(mpDescriptor, descMat.row(j));
-            if(d < bestDist){
-                secondBestDist = bestDist;
-                bestDist = d;
-                bestIdx = (int)j;
-            }
-            else if(d < secondBestDist){
-                secondBestDist = d;
-            }
-        }
+        //     int d = HammingDistance(mpDescriptor, descMat.row(j));
+        //     if(d < bestDist){
+        //         secondBestDist = bestDist;
+        //         bestDist = d;
+        //         bestIdx = (int)j;
+        //     }
+        //     else if(d < secondBestDist){
+        //         secondBestDist = d;
+        //     }
+        // }
 
-        if(bestIdx == -1)
-            continue;
+        // if(bestIdx == -1)
+        //     continue;
 
-        if(!(bestDist <= th && (float)bestDist < 0.9f * (float)secondBestDist))
-            continue;
+        // if(!(bestDist <= th && (float)bestDist < 0.9f * (float)secondBestDist))
+        //     continue;
 
-        // Recargar vKFMps porque iteraciones anteriores pueden haber modificado el mapa
-        vector<shared_ptr<MapPoint>>& vKFMps = pKF->getMapPoints();
+        // // Recargar vKFMps porque iteraciones anteriores pueden haber modificado el mapa
+        // vector<shared_ptr<MapPoint>>& vKFMps = pKF->getMapPoints();
 
-        if((size_t)bestIdx >= vKFMps.size())
-            continue;
+        // if((size_t)bestIdx >= vKFMps.size())
+        //     continue;
 
-        shared_ptr<MapPoint> pMPinKF = vKFMps[bestIdx];
+        // shared_ptr<MapPoint> pMPinKF = vKFMps[bestIdx];
 
-        if(!pMPinKF){
-            // KeyPoint sin MapPoint → añadir observación
-            // firma correcta: addObservation(kfId, mpId, idx)
-            if(pMap->getMapPoint(pMP->getId()) == nullptr)
-                continue;
-            pMap->addObservation(pKF->getId(), pMP->getId(), (size_t)bestIdx);
-            pKF->setMapPoint((size_t)bestIdx, pMP);
-            nFused++;
+        // if(!pMPinKF){
+        //     // KeyPoint sin MapPoint → añadir observación
+        //     // firma correcta: addObservation(kfId, mpId, idx)
+        //     if(pMap->getMapPoint(pMP->getId()) == nullptr)
+        //         continue;
+        //     pMap->addObservation(pKF->getId(), pMP->getId(), (size_t)bestIdx);
+        //     pKF->setMapPoint((size_t)bestIdx, pMP);
+        //     nFused++;
 
-        } else if(pMP->getId() != pMPinKF->getId()){
-            // Verificar que ambos MPs existen en el mapa
-            if(pMap->getMapPoint(pMP->getId()) == nullptr)
-                continue;
-            if(pMap->getMapPoint(pMPinKF->getId()) == nullptr)
-                continue;
+        // } else if(pMP->getId() != pMPinKF->getId()){
+        //     // Verificar que ambos MPs existen en el mapa
+        //     if(pMap->getMapPoint(pMP->getId()) == nullptr)
+        //         continue;
+        //     if(pMap->getMapPoint(pMPinKF->getId()) == nullptr)
+        //         continue;
 
-            // ← FIX DEL SLOT HUÉRFANO:
-            // Determinar cuál MP sobrevivirá (el de más observaciones)
-            int obs1 = pMap->getNumberOfObservations(pMP->getId());
-            int obs2 = pMap->getNumberOfObservations(pMPinKF->getId());
-            ID mpToKeep = (obs1 > obs2) ? pMP->getId() : pMPinKF->getId();
+        //     // ← FIX DEL SLOT HUÉRFANO:
+        //     // Determinar cuál MP sobrevivirá (el de más observaciones)
+        //     int obs1 = pMap->getNumberOfObservations(pMP->getId());
+        //     int obs2 = pMap->getNumberOfObservations(pMPinKF->getId());
+        //     ID mpToKeep = (obs1 > obs2) ? pMP->getId() : pMPinKF->getId();
 
-            // Si el MP que sobrevive ya tiene observación en este KF,
-            // fuseMapPoints dejará el slot huérfano → no fusionar
-            if(pMap->isMapPointInKeyFrame(mpToKeep, pKF->getId()) != -1)
-                continue;
+        //     // Si el MP que sobrevive ya tiene observación en este KF,
+        //     // fuseMapPoints dejará el slot huérfano → no fusionar
+        //     if(pMap->isMapPointInKeyFrame(mpToKeep, pKF->getId()) != -1)
+        //         continue;
 
-            pMap->fuseMapPoints(pMP->getId(), pMPinKF->getId());
-            nFused++;
-        }
+            //  pMap->fuseMapPoints(pMP->getId(), pMPinKF->getId());
+        //     nFused++;
+        // }
     }
 
     return nFused;

@@ -1,0 +1,47 @@
+%YAML:1.0
+
+Camera.type: "PinHole"
+# Camera calibration and distortion parameters
+Camera.fx: 783.890245
+Camera.fy: 784.804494
+Camera.cx: 417.452984
+Camera.cy: 233.274941
+
+Camera.k1: 0.0
+Camera.k2: 0.0
+Camera.p1: 0.0
+Camera.p2: 0.0
+Camera.k3: 0.0
+
+# Camera resolution
+Camera.cols: 848
+Camera.rows: 478
+
+# Number of features per image
+FeatureExtractor.nFeatures: 1000
+
+# Number of levels in the scale pyramid
+FeatureExtractor.nScales: 8
+
+# Scale factor between levels in the scale pyramid
+FeatureExtractor.fScaleFactor: 1.2
+
+# Feature grid dimensions
+FeatureGrid.nGridCols: 64
+FeatureGrid.nGridRows: 48
+
+#Essential Matrix threshold
+Epipolar.th: 0.002
+
+#Feature matching thresholds
+Matching.initialization: 40
+Matching.guidedMatching: 50
+Matching.searchByProjection: 100
+Matching.searchForTriangulation: 50
+Matching.fuse: 50
+
+#Covisivility graph
+Map.minObs: 70
+
+#Min cos parallax to triangulate
+Triangulation.minCos: 0.9998

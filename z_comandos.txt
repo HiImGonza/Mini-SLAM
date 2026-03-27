@@ -70,3 +70,5 @@ Indice de comienzo: 2482
 
 
 LAB4
+
+python3 Evaluation/evaluate_ate_scale.py Datasets/vicon_room1/V1_02_medium/left_gt.txt trajectory.txt --save align.txt --save_associations assiciated.txt --plot plot.png --verbose 

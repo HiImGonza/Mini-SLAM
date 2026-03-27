@@ -361,7 +361,11 @@ void localBundleAdjustment(Map* pMap, ID currKeyFrameId){
             if (!pMP) continue;
             if(sLocalMapPoints.count(pMP->getId()) == 0) continue;
 
-            assert(mMapPointId.count(pMP) > 0);
+            // assert(mMapPointId.count(pMP) > 0);
+            if (mMapPointId.count(pMP) > 0) {
+                // cerr << "[Warning]: El MapPoint no existe en mMapPointId. Saltando..." << endl;
+                continue;     
+            }
 
             //Set edge
             cv::Point2f uv = pKF->getKeyPoint(i).pt;

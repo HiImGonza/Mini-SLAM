@@ -51,45 +51,45 @@ void LocalMapping::doMapping(std::shared_ptr<KeyFrame> &pCurrKeyFrame) {
 }
 
 void LocalMapping::mapPointCulling() {
-    ID currKFId = currKeyFrame_->getId();
-    std::vector<ID> toRemove;
+    // ID currKFId = currKeyFrame_->getId();
+    // std::vector<ID> toRemove;
 
-    for(auto it = mRecentMapPoints_.begin(); it != mRecentMapPoints_.end(); ){
-        ID mID = it->first;
-        ID createdAtKF = it->second;
+    // for(auto it = mRecentMapPoints_.begin(); it != mRecentMapPoints_.end(); ){
+    //     ID mID = it->first;
+    //     ID createdAtKF = it->second;
 
-        // Si ya no existe en el mapa (borrado por fuseMapPoints), limpiar
-        if(pMap_->getMapPoint(mID) == nullptr){
-            it = mRecentMapPoints_.erase(it);
-            continue;
-        }
+    //     // Si ya no existe en el mapa (borrado por fuseMapPoints), limpiar
+    //     if(pMap_->getMapPoint(mID) == nullptr){
+    //         it = mRecentMapPoints_.erase(it);
+    //         continue;
+    //     }
 
-        long int age = (long int)currKFId - (long int)createdAtKF;
-        int nObs = pMap_->getNumberOfObservations(mID);
+    //     long int age = (long int)currKFId - (long int)createdAtKF;
+    //     int nObs = pMap_->getNumberOfObservations(mID);
 
-        if(age >= 3){
-            // Ha tenido tiempo suficiente — evaluar
-            if(nObs < 3){
-                toRemove.push_back(mID);
-            }
-            it = mRecentMapPoints_.erase(it);
-        } else {
-            // Reciente — solo borrar si completamente huérfano
-            if(nObs == 0){
-                toRemove.push_back(mID);
-                it = mRecentMapPoints_.erase(it);
-            } else {
-                ++it;
-            }
-        }
-    }
-    cout << "borrados" << toRemove.size() << endl;
+    //     if(age >= 3){
+    //         // Ha tenido tiempo suficiente — evaluar
+    //         if(nObs < 3){
+    //             toRemove.push_back(mID);
+    //         }
+    //         it = mRecentMapPoints_.erase(it);
+    //     } else {
+    //         // Reciente — solo borrar si completamente huérfano
+    //         if(nObs == 0){
+    //             toRemove.push_back(mID);
+    //             it = mRecentMapPoints_.erase(it);
+    //         } else {
+    //             ++it;
+    //         }
+    //     }
+    // }
+    // cout << "borrados" << toRemove.size() << endl;
 
-    for(ID mID : toRemove){
-        if(pMap_->getMapPoint(mID) == nullptr)
-            continue;
-        pMap_->removeMapPoint(mID);
-    }
+    // for(ID mID : toRemove){
+    //     if(pMap_->getMapPoint(mID) == nullptr)
+    //         continue;
+    //     pMap_->removeMapPoint(mID);
+    // }
 }
 
 // void LocalMapping::mapPointCulling() {
@@ -513,33 +513,46 @@ void LocalMapping::triangulateNewMapPoints() {
     }
 }
 
+// void LocalMapping::checkDuplicatedMapPoints() {
+//     vector<pair<ID,int>> vKFcovisible = pMap_->getCovisibleKeyFrames(currKeyFrame_->getId());
+
+//     for(int i = 0; i < (int)vKFcovisible.size(); i++){
+//         if(vKFcovisible[i].first == currKeyFrame_->getId())
+//             continue;
+
+//         shared_ptr<KeyFrame> pKFcovis = pMap_->getKeyFrame(vKFcovisible[i].first);
+//         if(!pKFcovis)
+//             continue;
+
+//         // Dirección 1: MPs de currKeyFrame contra el KF covisible
+//         vector<shared_ptr<MapPoint>> vCurrMapPoints = currKeyFrame_->getMapPoints();
+//         for(auto& pMP : vCurrMapPoints){
+//             if(pMP && pMap_->getMapPoint(pMP->getId()) == nullptr)
+//                 pMP = nullptr;
+//         }
+//         fuse(pKFcovis, settings_.getMatchingFuseTh(), vCurrMapPoints, pMap_.get());
+
+//         // Dirección 2: MPs del KF covisible contra currKeyFrame
+//         vector<shared_ptr<MapPoint>> vCovisMapPoints = pKFcovis->getMapPoints();
+//         for(auto& pMP : vCovisMapPoints){
+//             if(pMP && pMap_->getMapPoint(pMP->getId()) == nullptr)
+//                 pMP = nullptr;
+//         }
+//         fuse(currKeyFrame_, settings_.getMatchingFuseTh(), vCovisMapPoints, pMap_.get());
+
+//         pMap_->checkKeyFrame(vKFcovisible[i].first);
+//         pMap_->checkKeyFrame(currKeyFrame_->getId());
+//     }
+// }
+
 void LocalMapping::checkDuplicatedMapPoints() {
     vector<pair<ID,int>> vKFcovisible = pMap_->getCovisibleKeyFrames(currKeyFrame_->getId());
+    vector<shared_ptr<MapPoint>> vCurrMapPoints = currKeyFrame_->getMapPoints();
 
-    for(int i = 0; i < (int)vKFcovisible.size(); i++){
+    for(int i = 0; i < vKFcovisible.size(); i++){
         if(vKFcovisible[i].first == currKeyFrame_->getId())
             continue;
-
-        shared_ptr<KeyFrame> pKFcovis = pMap_->getKeyFrame(vKFcovisible[i].first);
-        if(!pKFcovis)
-            continue;
-
-        // Dirección 1: MPs de currKeyFrame contra el KF covisible
-        vector<shared_ptr<MapPoint>> vCurrMapPoints = currKeyFrame_->getMapPoints();
-        for(auto& pMP : vCurrMapPoints){
-            if(pMP && pMap_->getMapPoint(pMP->getId()) == nullptr)
-                pMP = nullptr;
-        }
-        fuse(pKFcovis, settings_.getMatchingFuseTh(), vCurrMapPoints, pMap_.get());
-
-        // Dirección 2: MPs del KF covisible contra currKeyFrame
-        vector<shared_ptr<MapPoint>> vCovisMapPoints = pKFcovis->getMapPoints();
-        for(auto& pMP : vCovisMapPoints){
-            if(pMP && pMap_->getMapPoint(pMP->getId()) == nullptr)
-                pMP = nullptr;
-        }
-        fuse(currKeyFrame_, settings_.getMatchingFuseTh(), vCovisMapPoints, pMap_.get());
-
+        int nFused = fuse(pMap_->getKeyFrame(vKFcovisible[i].first),settings_.getMatchingFuseTh(),vCurrMapPoints,pMap_.get());
         pMap_->checkKeyFrame(vKFcovisible[i].first);
         pMap_->checkKeyFrame(currKeyFrame_->getId());
     }
