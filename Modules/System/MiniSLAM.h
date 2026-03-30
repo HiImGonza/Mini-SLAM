@@ -56,6 +56,8 @@ public:
 
     void runGlobalBundleAdjustment();
 
+    size_t getMapPoints();
+
 private:
     /*
      * Converts if needed the image to grayscale

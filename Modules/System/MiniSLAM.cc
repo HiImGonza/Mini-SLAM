@@ -111,3 +111,8 @@ void MiniSLAM::runGlobalBundleAdjustment() {
 
     trajectoryFile.close();
 }
+
+size_t MiniSLAM::getMapPoints() {
+    return pMap_->getMapPoints().size();
+}
+

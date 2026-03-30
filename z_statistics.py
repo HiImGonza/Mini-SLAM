@@ -7,7 +7,7 @@ headers = ['Scale', 'Pairs', 'RMSE', 'Mean', 'Median', 'Std', 'Min', 'Max']
 
 # Cargamos los datos desde el archivo de texto
 try:
-    df = pd.read_csv('z_task5_results_2000.txt', names=headers)
+    df = pd.read_csv('./z_resultados_lab4/ATE_task2Comparation.txt', names=headers)
     df['Run'] = range(1, len(df) + 1)
 except FileNotFoundError:
     print("Error: El archivo 'z_task3_results.txt' no se encuentra.")

@@ -68,7 +68,6 @@ int main(int argc, char **argv){
         auto start = std::chrono::high_resolution_clock::now();
         
         bool isProcessed = SLAM.processImage(currIm, Tcw);
-        
         // Paramos el cronómetro
         auto end = std::chrono::high_resolution_clock::now();
 
@@ -87,7 +86,7 @@ int main(int argc, char **argv){
 
     trajectoryFile.close();
     
-// Cálculo de estadísticas y guardado
+    // Cálculo de estadísticas y guardado
     if (!processingTimes.empty()) {
         size_t n = processingTimes.size();
 
@@ -112,11 +111,11 @@ int main(int argc, char **argv){
         }
 
         // Abrir el fichero en modo append (añadir)
-        ofstream statsFile("timing_stats.txt", ios::app);
+        ofstream statsFile("z_resultados_lab4/stats_taskNuevo.txt", ios::app);
         if(statsFile.is_open()){
             // Guardar solo los números separados por comas en una sola línea
             // Formato: media,mediana,desviacion_estandar
-            statsFile << mean << "," << median << "," << std_dev << endl;
+            statsFile << mean << "," << median << "," << std_dev << "," << SLAM.getMapPoints() << endl;
             statsFile.close();
         } else {
             cerr << "[Error]: No se pudo abrir o crear el archivo de estadisticas." << endl;

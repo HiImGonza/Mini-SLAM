@@ -2,10 +2,10 @@
 
 Camera.type: "PinHole"
 # Camera calibration and distortion parameters
-Camera.fx: 423.911898
-Camera.fy: 425.597795
-Camera.cx: 129.519347
-Camera.cy: 240.315050
+Camera.fx: 920.395586
+Camera.fy: 919.486102
+Camera.cx: 483.921157
+Camera.cy: 271.597366
 
 Camera.k1: 0.0
 Camera.k2: 0.0

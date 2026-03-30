@@ -354,30 +354,6 @@ bool Tracking::trackLocalMap() {
     return nFeatTracked_ >= 20;
 }
 
-// bool Tracking::needNewKeyFrame() {
-//     /*
-//      * Your code for Lab 4 - Task 1 here!
-//      */
-//     nFramesFromLastKF_++;
-
-//     const size_t TRACKING_POINTS = 20;
-//     const size_t LAST_KF_MIN = 2; // 30 frames per second
-//     const size_t LAST_KF_MAX = 30; 
-
-//     const int newAreaTh = settings_.getFeaturesPerImage() * 0.7; 
-
-//     bool minFramesHasPassed = (nFramesFromLastKF_ > LAST_KF_MIN);
-//     bool notLost = (nFeatTracked_ > TRACKING_POINTS);
-//     bool newInformation = (nFeatTracked_ < newAreaTh) || (nFramesFromLastKF_ > LAST_KF_MAX);
-
-//     if (minFramesHasPassed && notLost && newInformation) {
-//         nFramesFromLastKF_ = 0;
-//         return true;
-//     }
-    
-//     return false;
-// }
-
 bool Tracking::needNewKeyFrame() {
     /*
      * Your code for Lab 4 - Task 1 here!
@@ -398,7 +374,7 @@ bool Tracking::needNewKeyFrame() {
     const int MIN_TRACKED_RATIO = nFeaturesLastKF * TRACK_RATIO;
     const int MIN_TRACKED_ABS = 150;
 
-    cout << "--------------LAST KF: " << nFramesFromLastKF_ << endl;
+    // cout << "--------------LAST KF: " << nFramesFromLastKF_ << endl;
 
 
     // Not enough frames has passed
@@ -408,95 +384,33 @@ bool Tracking::needNewKeyFrame() {
     
     // We are lost dont insert keyframe
     if (nFeatTracked_ < MIN_TRACKED_SAFE) {
-        cout << "Tracked safe" << endl;
+        // cout << "Tracked safe" << endl;
         return false;
     }
 
     // We are loosing track need KF
     if (nFeatTracked_ < MIN_TRACKED_RATIO) {
-        cout << "Condition: Threshold KF" << endl;
+        // cout << "Condition: Threshold KF" << endl;
         nFramesFromLastKF_ = 0;
         return true;
     }
 
     // We are loosing track need KF
     if (nFeatTracked_ < MIN_TRACKED_ABS) {
-        cout << "Condition: Absolute KF" << endl;
+        // cout << "Condition: Absolute KF" << endl;
         nFramesFromLastKF_ = 0;
         return true;
     }
 
     // Much time without KF
     if (nFramesFromLastKF_ > MAX_FRAMES) {
-        cout << "Condition: Much time since last KF" << endl;
+        // cout << "Condition: Much time since last KF" << endl;
         nFramesFromLastKF_ = 0;
         return true;
     }
 
     return false;
 }  
-
-// bool Tracking::needNewKeyFrame() {
-//     /*
-//      * Your code for Lab 4 - Task 1 here!
-//      */
-
-//     nFramesFromLastKF_++;
-
-//     // Guardará cuántos puntos estábamos trackeando la última vez que insertamos un KeyFrame.
-//     // Usamos 'static' para que el valor sobreviva entre llamadas a la función.
-//     // Inicialmente, le damos el valor máximo para el primer frame.
-//     static int nFeaturesLastKF = settings_.getFeaturesPerImage();
-
-//     if (nFramesFromLastKF_ == 1) {
-//         nFeaturesLastKF = nFeatTracked_;
-//     }
-//     // Número mínimo y máximo de frames entre KeyFrames
-//     const int minFramesBetweenKFs = 2;
-//     const int maxFramesBetweenKFs = 20;
-
-//     /// Ahora comparamos contra los puntos que teníamos en el ÚLTIMO KeyFrame, no contra el máximo.
-//     const float minTrackedRatio = 0.70f;
-//     const int minTrackedAbs = nFeaturesLastKF * minTrackedRatio;
-//     const int minThTracks = 150;
-
-//     // Necesitamos al menos 20 para considerarnos "perdidos" (he corregido el comentario de 10 a 20)
-//     const int minFeatTracked = 20;
-
-//     // Condición 0: Seguridad de Tracking
-//     // Si estamos trackeando menos del mínimo vital, es que estamos perdidos. 
-//     // No metemos NUNCA un KeyFrame, sea cual sea el tiempo que haya pasado.
-//     if (nFeatTracked_ < minFeatTracked) {
-//         return false;
-//     }
-
-//     // Condición 1: No insertar si han pasado muy pocos frames desde el último KF
-//     // Evita insertar KFs demasiado seguidos (Añadimos <= para igualar el "> 2" de tu amigo)
-//     if(nFramesFromLastKF_ <= minFramesBetweenKFs) {
-//         return false;
-//     }
-
-//     // Condición 2: Forzar inserción si llevamos demasiados frames sin insertar
-//     // (Llegados a este punto, ya sabemos que el tracking es bueno gracias a la Condición 0)
-//     if(nFramesFromLastKF_ >= maxFramesBetweenKFs) {
-//         cout << "Condition: Much time since last KF" << endl;
-//         nFramesFromLastKF_ = 0; 
-        
-//         // actualizamos memoria
-//         // nFeaturesLastKF = nFeatTracked_; 
-//         return true;
-//     }
-
-//     // Condición 3: Insertar si estamos trackeando pocos puntos respecto al ultimo keyframe
-//     if(nFeatTracked_ < minTrackedAbs || nFeatTracked_ < minThTracks) {
-//         cout << "Condition: Absolute KF" << endl;
-//         nFramesFromLastKF_ = 0; 
-//         // nFeaturesLastKF = nFeatTracked_;
-//         return true;
-//     }
-
-//     return false;
-// }
 
 void Tracking::promoteCurrentFrameToKeyFrame() {
     //Promote current frame to KeyFrame
